@@ -260,6 +260,31 @@ def generate_empty_month_dataframe(year, month, reference_df):
     return empty_df
 
 
+def convert_column_to_numeric(df, list_column_name):
+    """
+    Converte uma coluna para valores numéricos, substituindo os que não puderem ser convertidos por np.nan.
+
+    Parâmetros:
+    -----------
+    df : pd.DataFrame
+        DataFrame contendo a coluna a ser processada.
+
+    column_name : str
+        Nome da coluna a ser convertida.
+
+    Retorna:
+    --------
+    pd.DataFrame
+        DataFrame com a coluna convertida para numérico e valores inválidos substituídos por np.nan.
+    """
+
+    # Aplicar conversão linha a linha
+    for column_name in list_column_name:
+        df[column_name] = df[column_name].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+    return df
+    
+
 def merge_and_save_dataframes(dfs, output_filename):
     """
     Concatena todos os DataFrames no dicionário dfs, ordenando por "Date" e "Time",
