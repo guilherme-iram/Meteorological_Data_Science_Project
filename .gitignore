@@ -1,0 +1,5 @@
+*.xlsx
+dados/
+imgs/
+BSM_Relatorio*
+src/__pycache__
