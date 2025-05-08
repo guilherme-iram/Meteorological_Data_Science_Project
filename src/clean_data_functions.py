@@ -149,6 +149,53 @@ def filter_valid_dates(df):
     return df
 
 
+def split_month_dfs(dfs):
+    """
+    Separa um DataFrame em vários DataFrames menores, cada um representando um mês distinto.
+
+    Se `dfs` já for um dicionário com múltiplas chaves, ele é retornado sem modificações.
+    Caso contrário, o DataFrame é dividido com base na coluna "Date", criando chaves no formato "MêsAno" (ex: "Jun21", "Jul21").
+
+    Parâmetros:
+    -----------
+    dfs : dict ou pd.DataFrame
+        - Se for um dicionário com múltiplas chaves, ele é retornado inalterado.
+        - Se for um DataFrame, ele deve conter uma coluna "Date" no formato datetime.
+
+    Retorna:
+    --------
+    dict
+        Dicionário onde as chaves são strings no formato "MêsAno" (ex: "Jun21") e os valores são DataFrames filtrados por mês.
+
+    Observações:
+    ------------
+    - A função assume que a coluna "Date" contém valores datetime.
+    - O DataFrame original não é modificado, pois `copy()` é usado ao criar os DataFrames individuais.
+
+    Exemplo de uso:
+    --------------
+    >>> df = pd.DataFrame({"Date": ["2021-06-15", "2021-07-20"], "Value": [10, 20]})
+    >>> df["Date"] = pd.to_datetime(df["Date"])
+    >>> result = split_month_dfs(df)
+    >>> print(result.keys())  # Saída: dict_keys(['Jun21', 'Jul21'])
+    """
+
+    if len(dfs.keys()) > 1:
+        return dfs
+
+    k = next(iter(dfs))
+    df = dfs[k]
+
+    df["Date"] = pd.to_datetime(df["Date"])  
+
+    # Criar chaves baseadas no nome do mês e ano (Ex: "Jun21", "Jul21", ...)
+    df["MonthKey"] = df["Date"].dt.strftime("%b%y")  # Exemplo: "Jun21", "Jul21", etc.
+
+    # Criar um dicionário onde cada chave representa um mês específico
+    dfs = {key: df[df["MonthKey"] == key].copy() for key in df["MonthKey"].unique()}
+
+    return dfs
+
 
 def fill_missing_dates_and_times(df):
     """
@@ -210,6 +257,7 @@ def fill_missing_dates_and_times(df):
 
     # Concatenar o DataFrame original com os registros preenchidos e ordenar
     final_df = pd.concat([df, missing_df], ignore_index=True).sort_values(by=["Date", "Time"])
+    final_df = final_df.drop_duplicates(subset=["Date", "Time"], keep="first")
 
     return final_df
 
